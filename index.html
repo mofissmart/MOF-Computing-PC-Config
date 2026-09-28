@@ -1,0 +1,903 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>MOF Computing — Custom PC Build Studio</title>
+<style>
+/* ============================================================
+   MOF COMPUTING — DESIGN TOKENS
+   Matte black base / dark cards / white type / neon lime accent
+   ============================================================ */
+:root{
+  --bg:#0E0E0E;
+  --card:#1A1A1A;
+  --well:#0E0E0E;
+  --line:#282828;
+  --line-strong:#3A3A3A;
+  --text:#FFFFFF;
+  --muted:#A3A3A3;
+  --dim:#6E6E6E;
+  --lime:#CCFF00;
+  --lime-soft:rgba(204,255,0,0.10);
+  --lime-glow:rgba(204,255,0,0.30);
+  --radius:16px;
+  color-scheme:dark;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  background:
+    radial-gradient(1100px 480px at 85% -10%, rgba(204,255,0,.06), transparent 60%),
+    radial-gradient(900px 520px at -10% 30%, rgba(204,255,0,.04), transparent 55%),
+    var(--bg);
+  color:var(--text);
+  font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+  -webkit-font-smoothing:antialiased;
+  min-height:100vh;
+}
+
+/* ---------------- Site header ---------------- */
+.site-head{
+  border-bottom:1px solid #1F1F1F;
+  background:rgba(14,14,14,.85);
+  backdrop-filter:blur(8px);
+  position:sticky;top:0;z-index:50;
+}
+.head-inner{
+  max-width:1320px;margin:0 auto;padding:16px 32px;
+  display:flex;align-items:center;justify-content:space-between;gap:16px;
+}
+.brand{display:flex;align-items:center;gap:14px}
+.brand-mark{
+  width:40px;height:40px;border-radius:12px;
+  background:var(--lime);color:#0E0E0E;
+  display:grid;place-items:center;
+  font-weight:900;font-size:20px;
+  box-shadow:0 0 26px rgba(204,255,0,.35);
+}
+.brand-name{font-size:16px;font-weight:800;letter-spacing:.06em}
+.brand-tag{font-size:9.5px;letter-spacing:.22em;color:var(--dim);margin-top:3px}
+.head-status{
+  display:flex;align-items:center;gap:9px;
+  font-size:10px;letter-spacing:.18em;color:var(--muted);
+  border:1px solid #2A2A2A;padding:8px 14px;border-radius:999px;background:var(--card);
+}
+
+/* ---------------- Live pulse dot ---------------- */
+.live-dot{
+  width:8px;height:8px;border-radius:50%;
+  background:var(--lime);
+  animation:ping 2s infinite;
+}
+@keyframes ping{
+  0%{box-shadow:0 0 0 0 rgba(204,255,0,.45)}
+  70%{box-shadow:0 0 0 8px rgba(204,255,0,0)}
+  100%{box-shadow:0 0 0 0 rgba(204,255,0,0)}
+}
+
+/* ---------------- Two-column layout ---------------- */
+.builder{max-width:1320px;margin:0 auto;padding:28px 32px 72px}
+.builder-grid{
+  display:grid;
+  grid-template-columns:400px minmax(0,1fr);
+  gap:28px;
+  align-items:start;
+}
+
+/* ---------------- Left · sticky summary module ---------------- */
+.summary-card{
+  position:sticky;top:24px;
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:20px;
+  padding:26px 24px;
+  max-height:calc(100vh - 48px);
+  overflow:auto;
+}
+.summary-head{display:flex;justify-content:space-between;align-items:center}
+.summary-title{font-size:12px;font-weight:800;letter-spacing:.16em}
+.platform-chip{
+  display:inline-block;margin:18px 0 2px;
+  padding:7px 12px;border-radius:999px;
+  border:1px solid rgba(204,255,0,.35);
+  background:rgba(204,255,0,.07);
+  color:var(--lime);
+  font-size:10.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+}
+.price-block{
+  margin-top:18px;padding:18px 18px 16px;
+  border:1px solid #2A2A2A;border-radius:14px;background:var(--well);
+}
+.price-meta{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.price-label{font-size:10px;letter-spacing:.18em;color:var(--muted);font-weight:700}
+.price-lock{font-size:9.5px;letter-spacing:.12em;color:var(--dim);white-space:nowrap}
+.price-amount{
+  margin-top:10px;
+  font-size:46px;font-weight:800;letter-spacing:-.02em;
+  color:var(--lime);line-height:1;
+  font-variant-numeric:tabular-nums;
+  text-shadow:0 0 32px rgba(204,255,0,.35);
+}
+.price-sub{margin-top:9px;font-size:11px;color:var(--dim)}
+
+/* Build manifest breakdown */
+.breakdown{
+  list-style:none;margin:20px 0 22px;
+  max-height:264px;overflow-y:auto;padding-right:4px;
+}
+.breakdown li{
+  display:flex;align-items:baseline;gap:12px;
+  padding:9px 0;border-bottom:1px solid #232323;
+}
+.bd-left{min-width:0;flex:1;display:flex;flex-direction:column;gap:3px}
+.bd-cat{font-size:9.5px;letter-spacing:.14em;color:var(--dim)}
+.bd-name{
+  font-size:12.5px;color:#DEDEDE;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.bd-price{
+  color:var(--lime);font-weight:700;font-size:12.5px;
+  font-variant-numeric:tabular-nums;white-space:nowrap;
+}
+.breakdown::-webkit-scrollbar,.summary-card::-webkit-scrollbar{width:6px}
+.breakdown::-webkit-scrollbar-thumb,.summary-card::-webkit-scrollbar-thumb{
+  background:#333;border-radius:99px;
+}
+
+/* Checkout CTA */
+.checkout-btn{
+  width:100%;border:none;cursor:pointer;
+  background:var(--lime);color:#0E0E0E;
+  font-family:inherit;
+  font-size:15px;font-weight:800;letter-spacing:.02em;
+  padding:18px;border-radius:14px;
+  box-shadow:0 10px 34px -10px var(--lime-glow);
+  transition:transform .15s ease, box-shadow .2s ease, filter .2s ease;
+}
+.checkout-btn:hover{
+  transform:translateY(-2px);
+  filter:brightness(1.06);
+  box-shadow:0 16px 44px -10px var(--lime-glow);
+}
+.checkout-btn:active{transform:translateY(0) scale(.99)}
+.checkout-btn:focus-visible{outline:2px solid #FFF;outline-offset:3px}
+.trust-row{
+  display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;
+  margin-top:14px;
+}
+.trust-row span{
+  font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--dim);position:relative;padding-left:14px;
+}
+.trust-row span::before{
+  content:"";position:absolute;left:0;top:50%;transform:translateY(-50%);
+  width:5px;height:5px;border-radius:50%;background:var(--lime);
+}
+
+/* ---------------- Right · platform architecture tabs ---------------- */
+.platform-tabs{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:26px;
+}
+.tab{
+  position:relative;cursor:pointer;
+  background:var(--card);border:1px solid var(--line);border-radius:14px;
+  padding:16px 18px;text-align:left;
+  color:var(--muted);font-family:inherit;
+  transition:border-color .2s ease, background .2s ease, color .2s ease, box-shadow .25s ease;
+}
+.tab-main{display:block;font-size:14px;font-weight:700;letter-spacing:.01em}
+.tab-sub{
+  display:block;margin-top:5px;
+  font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--dim);
+}
+.tab:hover{border-color:var(--line-strong);color:#FFF}
+.tab.active{
+  border-color:var(--lime);color:#FFF;
+  background:linear-gradient(180deg, rgba(204,255,0,.09), rgba(204,255,0,.02));
+  box-shadow:0 0 0 1px var(--lime), 0 10px 34px -14px var(--lime-glow);
+}
+.tab.active .tab-sub{color:var(--lime)}
+.tab:focus-visible{outline:2px solid var(--lime);outline-offset:3px}
+
+/* ---------------- Component rows ---------------- */
+.step{
+  background:var(--card);border:1px solid var(--line);
+  border-radius:var(--radius);
+  padding:22px 24px;margin-bottom:18px;
+  transition:border-color .25s ease;
+}
+.step:hover{border-color:var(--line-strong)}
+.step-head{display:flex;align-items:center;gap:14px;margin-bottom:16px;flex-wrap:wrap;row-gap:10px}
+.step-num{
+  flex:0 0 auto;
+  width:34px;height:34px;border-radius:10px;
+  border:1px solid var(--line-strong);
+  background:rgba(204,255,0,.05);
+  display:grid;place-items:center;
+  font-size:13px;font-weight:800;color:var(--lime);
+  font-variant-numeric:tabular-nums;
+}
+.step h2{font-size:16px;font-weight:700;letter-spacing:.01em}
+.step-tag{
+  margin-left:auto;white-space:nowrap;
+  font-size:9.5px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--lime);
+  border:1px solid rgba(204,255,0,.35);
+  background:rgba(204,255,0,.07);
+  padding:6px 11px;border-radius:999px;
+}
+
+/* Premium select control */
+.select{
+  width:100%;
+  appearance:none;-webkit-appearance:none;-moz-appearance:none;
+  background-color:var(--well);
+  background-image:url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23CCFF00' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;
+  background-position:right 18px center;
+  border:1px solid var(--line-strong);
+  border-radius:12px;
+  color:#FFF;
+  padding:16px 48px 16px 18px;
+  font-family:inherit;font-size:14.5px;font-weight:500;
+  cursor:pointer;
+  transition:border-color .2s ease, box-shadow .2s ease;
+}
+.select:hover{border-color:#4C4C4C}
+.select:focus{
+  outline:none;border-color:var(--lime);
+  box-shadow:0 0 0 3px rgba(204,255,0,.15);
+}
+.select option{background:#141414;color:#FFF}
+
+/* Chassis grid — checkable visual radio cards */
+.case-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(200px,1fr));
+  gap:14px;
+}
+.case-card{
+  position:relative;cursor:pointer;
+  display:flex;flex-direction:column;gap:8px;
+  background:var(--well);
+  border:1px solid var(--line);
+  border-radius:14px;
+  padding:18px;
+  transition:transform .18s ease, border-color .2s ease, background .2s ease, box-shadow .25s ease;
+}
+.case-card:hover{border-color:var(--line-strong);transform:translateY(-2px)}
+.case-card input{position:absolute;opacity:0;pointer-events:none}
+.case-check{
+  position:absolute;top:14px;right:14px;
+  width:22px;height:22px;border-radius:50%;
+  border:1.5px solid var(--line-strong);
+  display:grid;place-items:center;
+  font-size:12px;font-weight:900;color:transparent;
+  transition:all .2s ease;
+}
+.case-name{
+  font-size:13.5px;font-weight:600;line-height:1.5;
+  color:#E8E8E8;padding-right:26px;
+}
+.case-price{
+  font-size:14px;font-weight:800;color:var(--muted);
+  font-variant-numeric:tabular-nums;
+  transition:color .2s ease;
+}
+.case-card.selected{
+  border-color:var(--lime);
+  background:linear-gradient(180deg, rgba(204,255,0,.07), rgba(204,255,0,.02));
+  box-shadow:0 10px 30px -14px var(--lime-glow);
+}
+.case-card.selected .case-check{
+  background:var(--lime);border-color:var(--lime);color:#0E0E0E;
+}
+.case-card.selected .case-price{color:var(--lime)}
+.case-card:focus-within{box-shadow:0 0 0 3px rgba(204,255,0,.22)}
+
+/* Platform-switch stagger animation */
+@keyframes riseIn{
+  from{opacity:0;transform:translateY(12px)}
+  to{opacity:1;transform:translateY(0)}
+}
+.steps-inner.anim .step{animation:riseIn .5s cubic-bezier(.22,.72,.24,1) both}
+.steps-inner.anim .step:nth-child(1){animation-delay:.02s}
+.steps-inner.anim .step:nth-child(2){animation-delay:.07s}
+.steps-inner.anim .step:nth-child(3){animation-delay:.12s}
+.steps-inner.anim .step:nth-child(4){animation-delay:.17s}
+.steps-inner.anim .step:nth-child(5){animation-delay:.22s}
+.steps-inner.anim .step:nth-child(6){animation-delay:.27s}
+.steps-inner.anim .step:nth-child(7){animation-delay:.32s}
+.steps-inner.anim .step:nth-child(8){animation-delay:.37s}
+.steps-inner.anim .step:nth-child(9){animation-delay:.42s}
+
+/* ---------------- Footer ---------------- */
+.site-foot{border-top:1px solid #1F1F1F}
+.site-foot div{
+  max-width:1320px;margin:0 auto;padding:26px 32px;
+  font-size:10.5px;letter-spacing:.08em;color:var(--dim);
+  display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;
+}
+
+/* ---------------- Responsive collapse ---------------- */
+@media (max-width:1040px){
+  .builder{padding:20px 18px 60px}
+  .builder-grid{grid-template-columns:1fr;gap:20px}
+  .summary-card{position:static;max-height:none}
+  .price-amount{font-size:40px}
+}
+@media (max-width:620px){
+  .head-inner{padding:14px 18px}
+  .head-status{display:none}
+  .platform-tabs{grid-template-columns:1fr}
+  .step{padding:18px 16px}
+  .step-tag{margin-left:calc(34px + 14px)}
+  .case-grid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}
+  .checkout-btn{font-size:13.5px;padding:16px}
+}
+</style>
+</head>
+<body>
+
+<header class="site-head">
+  <div class="head-inner">
+    <div class="brand">
+      <div class="brand-mark">M</div>
+      <div>
+        <div class="brand-name">MOF COMPUTING</div>
+        <div class="brand-tag">PRECISION CUSTOM PC STUDIO &middot; PERTH, WA</div>
+      </div>
+    </div>
+    <div class="head-status"><span class="live-dot" aria-hidden="true"></span>WAREHOUSE PIPELINE &middot; ONLINE</div>
+  </div>
+</header>
+
+<!-- ============================================================
+     MASTER BUILD FORM — all configuration inputs wrapped here.
+     POST pipeline is hardwired to the MOF intake endpoint.
+     ============================================================ -->
+<form id="pcForm" method="POST" action="https://formspree.io/f/mdekprrq">
+
+  <!-- MOF tracking payload — injected directly inside the opening form element -->
+  <input type="hidden" name="Customer Contact Email" id="formFieldUserEmail" value="">
+  <input type="hidden" name="Architecture Platform" id="formFieldPlatform" value="AM5">
+  <input type="hidden" name="Total Price AUD" id="formFieldTotalPrice" value="0">
+  <input type="hidden" name="Full Build Configuration Transcript" id="formFieldTranscript" value="">
+
+  <div class="builder">
+    <div class="builder-grid">
+
+      <!-- ================= LEFT · STICKY SUMMARY MODULE ================= -->
+      <aside class="summary-col">
+        <div class="summary-card">
+          <div class="summary-head">
+            <div class="summary-title">MOF PC BUILD OVERVIEW</div>
+            <div class="live-dot" aria-hidden="true"></div>
+          </div>
+
+          <div class="platform-chip" id="platformChip">AMD Ryzen AM5 (Next-Gen)</div>
+
+          <div class="price-block">
+            <div class="price-meta">
+              <span class="price-label">TOTAL PRICE &middot; AUD</span>
+              <span class="price-lock">&#128274; LOCKED QUOTE &middot; READ-ONLY</span>
+            </div>
+            <div class="price-amount" id="totalPriceDisplay">$0</div>
+            <div class="price-sub">Live total &middot; recalculated on every selection change</div>
+          </div>
+
+          <ul class="breakdown" id="breakdownList"></ul>
+
+          <button type="button" class="checkout-btn" id="checkoutBtn">🚀 ADD TO CART &amp; BUY NOW</button>
+
+          <div class="trust-row">
+            <span>Assembled in Perth</span>
+            <span>3-Year MOF Support</span>
+            <span>Stress-Tested</span>
+          </div>
+        </div>
+      </aside>
+
+      <!-- ============ RIGHT · SCROLLING COMPONENT ROWS ============ -->
+      <main class="build-col">
+
+        <nav class="platform-tabs" role="tablist" aria-label="Architecture platform">
+          <button type="button" class="tab active" role="tab" aria-selected="true" data-platform="am5">
+            <span class="tab-main">AMD Ryzen AM5</span><span class="tab-sub">(Next-Gen)</span>
+          </button>
+          <button type="button" class="tab" role="tab" aria-selected="false" data-platform="am4">
+            <span class="tab-main">AMD Ryzen AM4</span><span class="tab-sub">(Value Gaming)</span>
+          </button>
+          <button type="button" class="tab" role="tab" aria-selected="false" data-platform="intel">
+            <span class="tab-main">Intel Ultra/Core</span><span class="tab-sub">(Flagship Layout)</span>
+          </button>
+        </nav>
+
+        <div class="steps-inner anim" id="stepsInner">
+
+          <section class="step">
+            <div class="step-head">
+              <span class="step-num">01</span>
+              <h2>Processor (CPU)</h2>
+              <span class="step-tag" id="tagCpu">SILICON CORE</span>
+            </div>
+            <select class="select" id="optCpu" aria-label="Processor (CPU) options"></select>
+          </section>
+
+          <section class="step">
+            <div class="step-head">
+              <span class="step-num">02</span>
+              <h2>Motherboard (MOB)</h2>
+              <span class="step-tag" id="tagMob">AM5 SOCKET &middot; NEXT-GEN</span>
+            </div>
+            <select class="select" id="optMob" aria-label="Motherboard (MOB) options"></select>
+          </section>
+
+          <section class="step">
+            <div class="step-head">
+              <span class="step-num">03</span>
+              <h2>System Memory (RAM)</h2>
+              <span class="step-tag" id="tagRam">DDR5 MATRIX ONLY</span>
+            </div>
+            <select class="select" id="optRam" aria-label="System Memory (RAM) options"></select>
+          </section>
+
+          <section class="step">
+            <div class="step-head">
+              <span class="step-num">04</span>
+              <h2>Graphics Card (GPU)</h2>
+              <span class="step-tag">UNIVERSAL &middot; ALL PLATFORMS</span>
+            </div>
+            <select class="select" id="optGpu" aria-label="Graphics Card (GPU) options"></select>
+          </section>
+
+          <section class="step">
+            <div class="step-head">
+              <span class="step-num">05</span>
+              <h2>Solid State Storage (SSD)</h2>
+              <span class="step-tag">UNIVERSAL &middot; ALL PLATFORMS</span>
+            </div>
+            <select class="select" id="optSsd" aria-label="Solid State Storage (SSD) options"></select>
+          </section>
+
+          <section class="step">
+            <div class="step-head">
+              <span class="step-num">06</span>
+              <h2>CPU Thermal Cooler</h2>
+              <span class="step-tag">UNIVERSAL &middot; THERMAL SOLUTION</span>
+            </div>
+            <select class="select" id="optCooler" aria-label="CPU Thermal Cooler options"></select>
+          </section>
+
+          <section class="step">
+            <div class="step-head">
+              <span class="step-num">07</span>
+              <h2>Power Supply Unit (PSU)</h2>
+              <span class="step-tag">UNIVERSAL &middot; POWER DELIVERY</span>
+            </div>
+            <select class="select" id="optPsu" aria-label="Power Supply Unit (PSU) options"></select>
+          </section>
+
+          <section class="step">
+            <div class="step-head">
+              <span class="step-num">08</span>
+              <h2>Chassis Base (Case Layouts)</h2>
+              <span class="step-tag">VISUAL RADIO SELECTOR GRID</span>
+            </div>
+            <div class="case-grid" id="chassisGrid"></div>
+          </section>
+
+          <section class="step">
+            <div class="step-head">
+              <span class="step-num">09</span>
+              <h2>Operating System Environment</h2>
+              <span class="step-tag">UNIVERSAL &middot; SOFTWARE SUITE</span>
+            </div>
+            <select class="select" id="optOs" aria-label="Operating System Environment options"></select>
+          </section>
+
+        </div>
+      </main>
+    </div>
+  </div>
+</form>
+
+<footer class="site-foot">
+  <div>
+    <span>&copy; 2026 MOF COMPUTING &middot; T/A MOF CUSTOM BUILD STUDIO</span>
+    <span>ALL BUILDS ASSEMBLED, CABLE-MANAGED &amp; STRESS-TESTED IN-PERSON AT OUR PERTH WAREHOUSE</span>
+  </div>
+</footer>
+
+<script>
+(function(){
+"use strict";
+
+/* ================================================================
+   MOF COMPUTING — BACKGROUND HARDWARE DATABASE
+   PRIVACY PROTOCOL: every item may carry a hidden "link" string
+   (internal sourcing reference) used by the owner for background
+   lookup ONLY. These values are never rendered to the page,
+   never printed in the visible UI, and never transmitted in the
+   checkout transcript.
+   ================================================================ */
+const CATALOG = {
+  am5: {
+    label: "AMD Ryzen AM5 (Next-Gen)",
+    platCode: "AM5",
+    soc: "AM5",
+    cpu: [
+      { name: "AMD Ryzen 5 9600", price: 350,  link: "https://scorptec.com.au" },
+      { name: "AMD Ryzen 9 9950X3D (Extreme Gaming Flagship)", price: 1035, link: "https://scorptec.com.au" },
+      { name: "AMD Ryzen 7 7800X3D (Legendary 3D V-Cache)", price: 545, link: "https://amazon.com.au" }
+    ],
+    mob: [
+      { name: "ASUS ROG Strix B650-E Gaming WiFi PCIe 5.0", price: 445, link: "https://scorptec.com.au" },
+      { name: "Gigabyte X870 AORUS ELITE WIFI7 AM5 White", price: 465, link: "https://ple.com.au" },
+      { name: "Gigabyte X870 AORUS ELITE WIFI7 AM5 Black", price: 445, link: "https://ple.com.au" },
+      { name: "MSI PRO B650M-A WiFi Core Matched", price: 200, link: "https://scorptec.com.au" }
+    ],
+    ram: [
+      { name: "16GB Team T-Force Vulcan DDR5 6000MHz CL30", price: 425,  link: "https://scorptec.com.au" },
+      { name: "32GB Crucial Pro Overclocking DDR5 6400MHz CL38", price: 645,  link: "https://scorptec.com.au" },
+      { name: "64GB Lexar Ares RGB DDR5 6000MHz CL40", price: 1305, link: "https://scorptec.com.au" }
+    ]
+  },
+  am4: {
+    label: "AMD Ryzen AM4 (Value Gaming)",
+    platCode: "AM4",
+    soc: "AM4",
+    cpu: [
+      { name: "AMD Ryzen 7 5700X3D (Gaming Engine Classic)", price: 425, link: "https://dcomp.com.au" },
+      { name: "AMD Ryzen 5 5600X (Budget Performance Hero)", price: 225, link: "https://ple.com.au" }
+    ],
+    mob: [
+      { name: "MSI B550 Gaming WiFi6E AM4 ATX Mainboard", price: 235, link: "https://ple.com.au" },
+      { name: "MSI B550M-A PRO AM4 Compact mATX Board", price: 110, link: "https://ple.com.au" },
+      { name: "Gigabyte B550M DS3H AC R2 Budget AM4 Mainboard", price: 135 }
+    ],
+    ram: [
+      { name: "16GB Corsair Vengeance LPX DDR4 3200MHz Kit", price: 235 },
+      { name: "32GB Corsair Vengeance LPX DDR4 3200MHz Kit", price: 435 }
+    ]
+  },
+  intel: {
+    label: "Intel Ultra/Core (Flagship Layout)",
+    platCode: "INTEL",
+    soc: "LGA1700 / LGA1851",
+    cpu: [
+      { name: "Intel Core i5-14400F (Socket LGA1700 Base Variant)", price: 265,  link: "https://scorptec.com.au" },
+      { name: "Intel Core i7-14700F (Socket LGA1700 Heavy Compute)", price: 525,  link: "https://scorptec.com.au" },
+      { name: "Intel Core Ultra 9 285K (Socket LGA1851 Arrow Lake Flagship)", price: 1000, link: "https://scorptec.com.au" }
+    ],
+    mob: [
+      { name: "ASUS TUF GAMING B860-PLUS WIFI (LGA1851 DDR5)", price: 315, type: "ddr5", link: "https://scorptec.com.au" },
+      { name: "MSI PRO H810M-B WiFi6E (LGA1851 DDR5 Compact)", price: 165, type: "ddr5" },
+      { name: "MSI PRO B760M-A WiFi DDR4 (LGA1700 Retro Scale)", price: 205, type: "ddr4" }
+    ]
+    /* RAM is intentionally inherited here: a DDR5 board auto-loads the
+       identical AM5 DDR5 matrix; a DDR4 board auto-loads the identical
+       AM4 DDR4 matrix (see activeRamList()). */
+  }
+};
+
+const SHARED = {
+  gpu: [
+    { name: "Inno3D RTX 5060 Low Profile 8GB", price: 655,  link: "https://scorptec.com.au" },
+    { name: "Palit RTX 5060 Ti Infinity 3 16GB", price: 1055, link: "https://scorptec.com.au" },
+    { name: "ASUS Dual RTX 5070 OC Edition 12GB", price: 1205, link: "https://scorptec.com.au" },
+    { name: "Inno3D RTX 5070 Ti X3 16GB", price: 1655, link: "https://scorptec.com.au" },
+    { name: "Palit RTX 5080 Infinity 3 16GB", price: 2305, link: "https://scorptec.com.au" },
+    { name: "PNY RTX 5090 OC 32GB Flagship Chassis", price: 9005, link: "https://scorptec.com.au" }
+  ],
+  ssd: [
+    { name: "Crucial P510 1TB M.2 NVMe PCIe 5.0 Heat Sink", price: 275 },
+    { name: "1TB Samsung 990 PRO NVMe SSD with Heat Sink", price: 445, link: "https://scorptec.com.au" },
+    { name: "1TB Samsung 9100 PRO NVMe SSD with Heat Sink", price: 475 },
+    { name: "2TB Samsung 990 PRO NVMe SSD with Heat Sink", price: 805 },
+    { name: "2TB Samsung 9100 PRO NVMe SSD with Heat Sink", price: 1035 },
+    { name: "4TB Samsung 990 PRO NVMe PCIe Gen4 Flash SSD", price: 1105 },
+    { name: "4TB Samsung 9100 PRO NVMe PCIe Gen5 Extreme SSD", price: 2055 },
+    { name: "8TB Samsung 9100 PRO NVMe PCIe Gen5 Industrial SSD", price: 3580 }
+  ],
+  cooler: [
+    { name: "ID-Cooling FX360 INF 360mm ARGB AIO Liquid Loop", price: 114, link: "https://scorptec.com.au" },
+    { name: "Thermalright Peerless Assassin 120 SE Dual Tower Air", price: 75, link: "https://scorptec.com.au" },
+    { name: "Corsair NAUTILUS 360 RS Black Liquid CPU Cooler", price: 155 }
+  ],
+  psu: [
+    { name: "Corsair RM1000x Shift 1000W 80+ Gold Fully Modular", price: 250 },
+    { name: "MSI MAG A750GL 750W 80+ Gold ATX 3.0 Module", price: 145 }
+  ],
+  chassis: [
+    { name: "HYTE X50 Tempered Glass Mid Tower Case", price: 255, link: "https://ple.com.au" },
+    { name: "HYTE X50 Mesh Mid Tower Case", price: 165, link: "https://ple.com.au" },
+    { name: "Cooler Master Elite 681 ATX Case", price: 120, link: "https://scorptec.com.au" },
+    { name: "Lian Li O11 Vision Compact", price: 215 },
+    { name: "Montech KING 95 PRO Dual-Chamber Tempered Glass", price: 205 }
+  ],
+  os: [
+    { name: "Microsoft Windows 11 Home 64-Bit Retail USB Suite", price: 150, link: "https://scorptec.com.au" },
+    { name: "Microsoft Windows 11 Pro 64-Bit Retail USB Suite", price: 160, link: "https://scorptec.com.au" },
+    { name: "No Operating System Pre-Configured (Bring Your Own Key)", price: 0 }
+  ]
+};
+
+/* ---------------- Live build state ---------------- */
+const state = {
+  platform: "am5",
+  cpu: 0, mob: 0, ram: 0,
+  gpu: 0, ssd: 0, cooler: 0, psu: 0, chassis: 0, os: 0
+};
+
+const $ = (id) => document.getElementById(id);
+
+function fmtAUD(n){ return "$" + n.toLocaleString("en-AU"); }
+
+/* ---------------- Core pricing / selection engine ---------------- */
+function activeRamList(){
+  if(state.platform === "intel"){
+    return (CATALOG.intel.mob[state.mob].type === "ddr5")
+      ? CATALOG.am5.ram     /* identical AM5 DDR5 matrix (16 / 32 / 64GB) */
+      : CATALOG.am4.ram;    /* identical AM4 DDR4 matrix (16 / 32GB)     */
+  }
+  return CATALOG[state.platform].ram;
+}
+
+function getSelections(){
+  const p = CATALOG[state.platform];
+  return [
+    ["PROCESSOR",        p.cpu[state.cpu]],
+    ["MOTHERBOARD",      p.mob[state.mob]],
+    ["SYSTEM MEMORY",    activeRamList()[state.ram]],
+    ["GRAPHICS CARD",    SHARED.gpu[state.gpu]],
+    ["SSD STORAGE",      SHARED.ssd[state.ssd]],
+    ["CPU COOLER",       SHARED.cooler[state.cooler]],
+    ["POWER SUPPLY",     SHARED.psu[state.psu]],
+    ["CHASSIS",          SHARED.chassis[state.chassis]],
+    ["OPERATING SYSTEM", SHARED.os[state.os]]
+  ];
+}
+
+/* ---------------- Renderers ---------------- */
+function renderSelect(el, items, selectedIdx){
+  el.innerHTML = "";
+  items.forEach((item, i) => {
+    const opt = document.createElement("option");
+    opt.value = i;
+    opt.textContent = item.name + " [+$" + item.price + "]";
+    if(i === selectedIdx) opt.selected = true;
+    el.appendChild(opt);
+  });
+}
+
+function renderChassisGrid(){
+  const grid = $("chassisGrid");
+  grid.innerHTML = "";
+  SHARED.chassis.forEach((item, i) => {
+    const card = document.createElement("label");
+    card.className = "case-card" + (i === state.chassis ? " selected" : "");
+
+    const radio = document.createElement("input");
+    radio.type = "radio";
+    radio.name = "chassis-select";
+    radio.value = i;
+    if(i === state.chassis) radio.checked = true;
+
+    const check = document.createElement("span");
+    check.className = "case-check";
+    check.textContent = "\u2713";
+
+    const name = document.createElement("span");
+    name.className = "case-name";
+    name.textContent = item.name;
+
+    const price = document.createElement("span");
+    price.className = "case-price";
+    price.textContent = "+$" + item.price;
+
+    card.append(radio, check, name, price);
+    grid.appendChild(card);
+  });
+}
+
+function refreshTags(){
+  $("tagCpu").textContent = "SILICON CORE \u00B7 " + CATALOG[state.platform].soc;
+  if(state.platform === "am5"){
+    $("tagMob").textContent = "AM5 SOCKET \u00B7 NEXT-GEN";
+  } else if(state.platform === "am4"){
+    $("tagMob").textContent = "AM4 SOCKET \u00B7 PROVEN";
+  } else {
+    $("tagMob").textContent = "LGA1700 / LGA1851";
+  }
+  if(state.platform === "am5"){
+    $("tagRam").textContent = "DDR5 MATRIX ONLY";
+  } else if(state.platform === "am4"){
+    $("tagRam").textContent = "DDR4 MATRIX ONLY";
+  } else {
+    $("tagRam").textContent =
+      (CATALOG.intel.mob[state.mob].type === "ddr5" ? "DDR5 MATRIX" : "DDR4 MATRIX") + " \u00B7 AUTO-MATCHED";
+  }
+}
+
+/* Instant cost engine — fires on every tab toggle, dropdown change,
+   and chassis-card selection; outputs into the sticky AUD total. */
+function recalc(){
+  const sel = getSelections();
+  const total = sel.reduce((sum, pair) => sum + pair[1].price, 0);
+
+  $("totalPriceDisplay").textContent = fmtAUD(total);
+  $("formFieldTotalPrice").value = String(total);
+  $("formFieldPlatform").value = CATALOG[state.platform].platCode;
+  $("platformChip").textContent = CATALOG[state.platform].label;
+
+  const ul = $("breakdownList");
+  ul.innerHTML = "";
+  sel.forEach((pair) => {
+    const category = pair[0], item = pair[1];
+    const li = document.createElement("li");
+    const left = document.createElement("div");
+    left.className = "bd-left";
+    const cat = document.createElement("div");
+    cat.className = "bd-cat";
+    cat.textContent = category;
+    const nm = document.createElement("div");
+    nm.className = "bd-name";
+    nm.textContent = item.name;
+    left.append(cat, nm);
+    const pr = document.createElement("div");
+    pr.className = "bd-price";
+    pr.textContent = (item.price === 0) ? "INCLUDED" : fmtAUD(item.price);
+    li.append(left, pr);
+    ul.appendChild(li);
+  });
+}
+
+function renderPlatformSections(){
+  const p = CATALOG[state.platform];
+  renderSelect($("optCpu"), p.cpu, state.cpu);
+  renderSelect($("optMob"), p.mob, state.mob);
+  renderSelect($("optRam"), activeRamList(), state.ram);
+  refreshTags();
+}
+
+function renderAll(){
+  renderPlatformSections();
+  renderSelect($("optGpu"),      SHARED.gpu,     state.gpu);
+  renderSelect($("optSsd"),      SHARED.ssd,     state.ssd);
+  renderSelect($("optCooler"),   SHARED.cooler,  state.cooler);
+  renderSelect($("optPsu"),      SHARED.psu,     state.psu);
+  renderSelect($("optOs"),       SHARED.os,      state.os);
+  renderChassisGrid();
+  recalc();
+}
+
+/* ---------------- Architecture tab switching ---------------- */
+const tabButtons = Array.from(document.querySelectorAll(".tab"));
+tabButtons.forEach((btn) => {
+  btn.addEventListener("click", () => {
+    const next = btn.dataset.platform;
+    if(next === state.platform) return;
+    state.platform = next;
+    state.cpu = 0; state.mob = 0; state.ram = 0;
+    tabButtons.forEach((t) => {
+      const on = (t === btn);
+      t.classList.toggle("active", on);
+      t.setAttribute("aria-selected", on ? "true" : "false");
+    });
+    renderPlatformSections();
+    recalc();
+    const wrap = $("stepsInner");
+    wrap.classList.remove("anim");
+    void wrap.offsetWidth; /* restart stagger */
+    wrap.classList.add("anim");
+  });
+});
+
+/* ---------------- Dropdown wiring (native prices in data arrays) ---------------- */
+$("optCpu").addEventListener("change", (e) => { state.cpu = +e.target.value;    recalc(); });
+$("optRam").addEventListener("change", (e) => { state.ram = +e.target.value;    recalc(); });
+$("optGpu").addEventListener("change", (e) => { state.gpu = +e.target.value;    recalc(); });
+$("optSsd").addEventListener("change", (e) => { state.ssd = +e.target.value;    recalc(); });
+$("optCooler").addEventListener("change",(e) => { state.cooler = +e.target.value; recalc(); });
+$("optPsu").addEventListener("change", (e) => { state.psu = +e.target.value;    recalc(); });
+$("optOs").addEventListener("change",  (e) => { state.os  = +e.target.value;    recalc(); });
+
+/* Intel logic: auto-swap DDR4/DDR5 RAM matrix to the new board,
+   carrying the chosen capacity over when it still exists. */
+$("optMob").addEventListener("change", (e) => {
+  const prevRam = activeRamList()[state.ram];
+  const prevRamName = prevRam ? prevRam.name : "";
+  state.mob = +e.target.value;
+  if(state.platform === "intel"){
+    const newList = activeRamList();
+    const capMatch = prevRamName.match(/^(\d+)\s*GB/);
+    const matchIdx = capMatch
+      ? newList.findIndex((it) => it.name.indexOf(capMatch[1] + "GB") === 0)
+      : -1;
+    state.ram = (matchIdx >= 0) ? matchIdx : 0;
+    renderSelect($("optRam"), newList, state.ram);
+  }
+  refreshTags();
+  recalc();
+});
+
+/* Chassis visual radio grid */
+$("chassisGrid").addEventListener("change", (e) => {
+  state.chassis = +e.target.value;
+  renderChassisGrid();
+  recalc();
+});
+
+/* ---------------- Checkout transcript compiler ---------------- */
+function buildTranscript(){
+  const sel = getSelections();
+  const total = sel.reduce((sum, pair) => sum + pair[1].price, 0);
+  const lines = [];
+  lines.push("MOF COMPUTING \u2014 CUSTOM BUILD CONFIGURATION TRANSCRIPT");
+  lines.push("======================================================");
+  lines.push("Architecture Platform: " + CATALOG[state.platform].label);
+  lines.push("");
+  sel.forEach((pair, idx) => {
+    lines.push(
+      String(idx + 1).padStart(2, "0") + ". [" + pair[0] + "] " +
+      pair[1].name + " \u2014 $" + pair[1].price.toLocaleString("en-AU") + " AUD"
+    );
+  });
+  lines.push("");
+  lines.push("TOTAL PRICE: $" + total.toLocaleString("en-AU") + " AUD");
+  lines.push("Generated: " + new Date().toLocaleString("en-AU", { timeZone: "Australia/Perth" }));
+  return lines.join("\n");
+}
+
+/* ---------------- Checkout hijack & background transmission ---------------- */
+function runCheckout(){
+  const email = window.prompt(
+    "Please enter your email address so we can route your custom build to our Perth warehouse pipeline:"
+  );
+
+  if(email === null || email.trim() === ""){
+    window.alert("An email address is required to lock in your build configuration.");
+    return;
+  }
+  const cleanEmail = email.trim();
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)){
+    window.alert("An email address is required to lock in your build configuration.");
+    return;
+  }
+
+  /* Populate tracking payload */
+  $("formFieldUserEmail").value   = cleanEmail;
+  $("formFieldTranscript").value  = buildTranscript();
+  $("formFieldTotalPrice").value  = String(
+    getSelections().reduce((sum, pair) => sum + pair[1].price, 0)
+  );
+  $("formFieldPlatform").value    = CATALOG[state.platform].platCode;
+
+  window.alert(
+    "Thank you! Your custom configuration blueprint has been packaged and securely routed to our Perth warehouse pipeline. Our assembly team will contact you at your provided email."
+  );
+
+  /* Fire the native form submission to the hardwired endpoint */
+  document.getElementById("pcForm").submit();
+}
+
+/* Plain button + hijacked click event */
+$("checkoutBtn").addEventListener("click", runCheckout);
+
+/* Guard: any native/keyboard form submission also routes through the
+   email gate. Note: programmatic form.submit() does not dispatch the
+   submit event, so the final POST passes through cleanly. */
+$("pcForm").addEventListener("submit", function(e){
+  e.preventDefault();
+  runCheckout();
+});
+
+/* ---------------- Boot ---------------- */
+renderAll();
+})();
+</script>
+</body>
+</html>
